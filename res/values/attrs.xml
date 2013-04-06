@@ -1,0 +1,27 @@
+<!--
+
+    ${project.name}
+
+    Copyright 2013 Tony Atkins
+
+    Licensed under the New BSD license. You may not use this file except in
+    compliance with this License.
+
+    You may obtain a copy of the License at
+    https://github.com/gpii/universal/LICENSE.txt
+
+-->
+<resources>
+
+    <!--
+         Declare custom theme attributes that allow changing which styles are
+         used for button bars depending on the API level.
+         ?android:attr/buttonBarStyle is new as of API 11 so this is
+         necessary to support previous API levels.
+    -->
+    <declare-styleable name="ButtonBarContainerTheme">
+        <attr name="buttonBarStyle" format="reference" />
+        <attr name="buttonBarButtonStyle" format="reference" />
+    </declare-styleable>
+
+</resources>

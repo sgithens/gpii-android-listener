@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    ${project.name}
+
+    Copyright 2013 Tony Atkins
+
+    Licensed under the New BSD license. You may not use this file except in
+    compliance with this License.
+
+    You may obtain a copy of the License at
+    https://github.com/gpii/universal/LICENSE.txt
+
+-->
+<resources>
+    <string name="app_name">GPII Listener for Android</string>
+    <string name="nfc_close_button_label">Close</string>
+    <string name="nfc_activity_default_status">Loading GPII User Preferences...</string>
+    <string name="nfc_listener_activity_label">GPII NFC Listener</string>
+    <string name="startup_close_button">Close</string>
+    <string name="startup_instructions">This application is meant to be run by scanning a GPII identifier token.  It is not meant to be opened directly.</string>
+</resources>
