@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Date;
 
 import net.gpii.android.listener.Constants;
 import net.gpii.android.listener.R;
@@ -42,6 +43,12 @@ public class NfcListenerActivity extends Activity {
 	private ProgressBar progressView;
 	private TextView statusTextView;
 
+	// not really thread safe correctly yet, but ok for this demo hopefully
+	// these 3 variables all keep the state
+	private static Date lastLogin = null;
+	private static boolean logging_in_or_out = false;
+	private static boolean logged_in = false;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -88,50 +95,64 @@ public class NfcListenerActivity extends Activity {
 	private class GpiiLoginAsyncTask extends AsyncTask<String,String,Long> {
 		@Override
 		protected Long doInBackground(String... params) {
-			String username = params[0];
-			String resultMessage = "...";
-			try
-			{
-				URL loginUrl = new URL(Constants.USER_REST_URL + "/" + username + "/login");
-				// Try to log in 
-				AndroidHttpClient httpClient = AndroidHttpClient.newInstance("Android Device");
-				HttpGet httpGet = new HttpGet(loginUrl.toURI());
-				HttpResponse httpResponse = httpClient.execute(httpGet);
-
-				int statusCode = httpResponse.getStatusLine().getStatusCode();
-				switch (statusCode) {
-					case HttpStatus.SC_OK:
-					case HttpStatus.SC_ACCEPTED:
-						resultMessage = "Logged in as user '" + username + "'." ;
-						Log.d(Constants.TAG, resultMessage);
-						break;
-					case HttpStatus.SC_NOT_FOUND:
-						resultMessage = "GPII server not found.";
-						Log.e(Constants.TAG, resultMessage);
-						break;
-					case HttpStatus.SC_INTERNAL_SERVER_ERROR:
-						resultMessage = "Unknown error logging in, status code " + statusCode;
-						Log.e(Constants.TAG, resultMessage);
-						break;
-					default:
-						resultMessage = "Unknown login results with status code " + statusCode;
-						Log.e(Constants.TAG, resultMessage);
-						break;
+			if (lastLogin != null && ((((new Date()).getTime()-lastLogin.getTime())/1000)>5)) {
+				logging_in_or_out = false;
+			}
+			if (logging_in_or_out == false) {
+				logging_in_or_out = true;
+				lastLogin = new Date();
+				String username = params[0];
+				String resultMessage = "...";
+				try
+				{
+					URL loginUrl = null;
+					if (logged_in == false) {
+						loginUrl = new URL(Constants.USER_REST_URL + "/" + username + "/login");
+						logged_in = true;
+					}
+					else {
+						loginUrl = new URL(Constants.USER_REST_URL + "/" + username + "/logout");
+						logged_in = false;
+					}
+					// Try to log in 
+					AndroidHttpClient httpClient = AndroidHttpClient.newInstance("Android Device");
+					HttpGet httpGet = new HttpGet(loginUrl.toURI());
+					HttpResponse httpResponse = httpClient.execute(httpGet);
+	
+					int statusCode = httpResponse.getStatusLine().getStatusCode();
+					switch (statusCode) {
+						case HttpStatus.SC_OK:
+						case HttpStatus.SC_ACCEPTED:
+							resultMessage = "Logged in as user '" + username + "'." ;
+							Log.d(Constants.TAG, resultMessage);
+							break;
+						case HttpStatus.SC_NOT_FOUND:
+							resultMessage = "GPII server not found.";
+							Log.e(Constants.TAG, resultMessage);
+							break;
+						case HttpStatus.SC_INTERNAL_SERVER_ERROR:
+							resultMessage = "Unknown error logging in, status code " + statusCode;
+							Log.e(Constants.TAG, resultMessage);
+							break;
+						default:
+							resultMessage = "Unknown login results with status code " + statusCode;
+							Log.e(Constants.TAG, resultMessage);
+							break;
+					}
 				}
-			}
-			catch (URISyntaxException e)
-			{
-				resultMessage = "Error converting login URL to URI.";
-				Log.e(Constants.TAG, resultMessage, e);
-			}
-			catch (IOException e)
-			{
-				resultMessage = "GPII server not found.";
-				Log.e(Constants.TAG, resultMessage, e);
-			}
-			
-			publishProgress(resultMessage);
-			
+				catch (URISyntaxException e)
+				{
+					resultMessage = "Error converting login URL to URI.";
+					Log.e(Constants.TAG, resultMessage, e);
+				}
+				catch (IOException e)
+				{
+					resultMessage = "GPII server not found.";
+					Log.e(Constants.TAG, resultMessage, e);
+				}
+				
+				publishProgress(resultMessage);
+			}	
 			return 0L;
 		}
 		@Override
